@@ -1,12 +1,15 @@
 import Link from "next/link";
+import { ThemeToggle } from "@/components/theme-toggle";
 import { SITE_NAME } from "@/lib/constants";
 
 /**
- * Site footer. Server Component — no state, no interactivity.
+ * Site footer. Server Component — the one interactive child, the theme toggle,
+ * is a client module it simply mounts.
  *
  * Sits under the viewer on every route, so it is deliberately thin: one line of
  * small muted type, minimal vertical padding, nothing that competes with the
- * document being read.
+ * document being read. The toggle lives here because the empty dropzone has no
+ * header to put it in.
  */
 export function Footer() {
   return (
@@ -17,12 +20,15 @@ export function Footer() {
           ·
         </span>
         <span>Runs entirely in your browser.</span>
-        <Link
-          href="/privacy"
-          className="hover:text-fg focus-visible:outline-accent decoration-border ml-auto rounded-sm underline underline-offset-4 transition-colors hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2"
-        >
-          Privacy
-        </Link>
+        <div className="ml-auto flex items-center gap-3">
+          <Link
+            href="/privacy"
+            className="hover:text-fg focus-visible:outline-accent decoration-border rounded-sm underline underline-offset-4 transition-colors hover:decoration-current focus-visible:outline-2 focus-visible:outline-offset-2"
+          >
+            Privacy
+          </Link>
+          <ThemeToggle size="sm" />
+        </div>
       </div>
     </footer>
   );

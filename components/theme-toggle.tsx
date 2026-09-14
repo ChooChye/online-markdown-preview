@@ -14,8 +14,19 @@ const NEXT_THEME: Record<ThemeSetting, ThemeSetting> = {
   system: "light",
 };
 
+/** Header chrome gets the full square; the footer's one line of small type gets the compact one. */
+type ToggleSize = "md" | "sm";
+
 /** Square button edge, in Tailwind sizing units. The placeholder matches it exactly. */
-const BUTTON_SIZE_CLASS = "size-9";
+const BUTTON_SIZE_CLASS: Record<ToggleSize, string> = {
+  md: "size-9",
+  sm: "size-7",
+};
+
+const ICON_SIZE_CLASS: Record<ToggleSize, string> = {
+  md: "size-[18px]",
+  sm: "size-[15px]",
+};
 
 const ICON_PROPS: SVGProps<SVGSVGElement> = {
   viewBox: "0 0 24 24",
@@ -26,12 +37,11 @@ const ICON_PROPS: SVGProps<SVGSVGElement> = {
   strokeLinejoin: "round",
   "aria-hidden": true,
   focusable: "false",
-  className: "size-[18px]",
 };
 
-function SunIcon(): ReactElement {
+function SunIcon({ className }: { className: string }): ReactElement {
   return (
-    <svg {...ICON_PROPS}>
+    <svg {...ICON_PROPS} className={className}>
       <circle cx="12" cy="12" r="4" />
       <path d="M12 2v2" />
       <path d="M12 20v2" />
@@ -45,17 +55,17 @@ function SunIcon(): ReactElement {
   );
 }
 
-function MoonIcon(): ReactElement {
+function MoonIcon({ className }: { className: string }): ReactElement {
   return (
-    <svg {...ICON_PROPS}>
+    <svg {...ICON_PROPS} className={className}>
       <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
     </svg>
   );
 }
 
-function MonitorIcon(): ReactElement {
+function MonitorIcon({ className }: { className: string }): ReactElement {
   return (
-    <svg {...ICON_PROPS}>
+    <svg {...ICON_PROPS} className={className}>
       <rect x="2" y="3" width="20" height="14" rx="2" />
       <path d="M8 21h8" />
       <path d="M12 17v4" />
@@ -63,10 +73,10 @@ function MonitorIcon(): ReactElement {
   );
 }
 
-const THEME_ICON: Record<ThemeSetting, ReactElement> = {
-  light: <SunIcon />,
-  dark: <MoonIcon />,
-  system: <MonitorIcon />,
+const THEME_ICON: Record<ThemeSetting, (props: { className: string }) => ReactElement> = {
+  light: SunIcon,
+  dark: MoonIcon,
+  system: MonitorIcon,
 };
 
 function isThemeSetting(value: string | undefined): value is ThemeSetting {
@@ -87,7 +97,7 @@ const getServerMountedSnapshot = () => false;
  * `resolvedTheme`, because the third state is "follow the OS" — a fact
  * `resolvedTheme` erases by collapsing it to light or dark.
  */
-export function ThemeToggle() {
+export function ThemeToggle({ size = "md" }: { size?: ToggleSize } = {}) {
   const { theme, setTheme } = useTheme();
 
   // `theme` is undefined during SSR and on the very first client render, so the
@@ -100,12 +110,13 @@ export function ThemeToggle() {
   );
 
   if (!mounted) {
-    return <div className={BUTTON_SIZE_CLASS} aria-hidden="true" />;
+    return <div className={BUTTON_SIZE_CLASS[size]} aria-hidden="true" />;
   }
 
-  const current: ThemeSetting = isThemeSetting(theme) ? theme : "system";
+  const current: ThemeSetting = isThemeSetting(theme) ? theme : "light";
   const next = NEXT_THEME[current];
   const label = `Theme: ${current}. Switch to ${next}.`;
+  const Icon = THEME_ICON[current];
 
   return (
     <button
@@ -113,9 +124,9 @@ export function ThemeToggle() {
       onClick={() => setTheme(next)}
       aria-label={label}
       title={label}
-      className={`${BUTTON_SIZE_CLASS} text-fg-muted hover:text-fg hover:bg-canvas-subtle border-border inline-flex cursor-pointer items-center justify-center rounded-md border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current`}
+      className={`${BUTTON_SIZE_CLASS[size]} text-fg-muted hover:text-fg hover:bg-canvas-subtle border-border inline-flex cursor-pointer items-center justify-center rounded-md border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-current`}
     >
-      {THEME_ICON[current]}
+      <Icon className={ICON_SIZE_CLASS[size]} />
     </button>
   );
 }
