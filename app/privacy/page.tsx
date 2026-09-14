@@ -80,7 +80,10 @@ export default function PrivacyPage() {
           </li>
           <li>Nothing is kept between sessions. Reload the page and the document is gone.</li>
           <li>No cookies. No accounts. No sign-in. Free to use, for anyone.</li>
-          <li>Pageviews are counted, anonymously and in aggregate. Nothing else is measured.</li>
+          <li>
+            Pageviews and page-load timings are counted, anonymously and in aggregate. Nothing else
+            is measured.
+          </li>
           <li>
             Hosting and analytics see ordinary request metadata — that is delivery, not content.
             Details below.
@@ -138,29 +141,31 @@ export default function PrivacyPage() {
 
       <Section title="This site has analytics">
         <P>
-          Vercel Web Analytics counts pageviews here. Rather than gloss over that, here is exactly
-          what it is:
+          Vercel Web Analytics counts pageviews here, and Vercel Speed Insights records how quickly
+          the page loaded. Rather than gloss over that, here is exactly what they are:
         </P>
         <Bullets>
           <li>
-            <Lead>Cookieless.</Lead> It stores no identifier in your browser.
+            <Lead>Cookieless.</Lead> Neither stores an identifier in your browser.
           </li>
           <li>
-            <Lead>Same-origin.</Lead> It posts to <Code>/_vercel/insights/</Code> on this domain, not
-            to a third-party tracking host. <Code>{"connect-src 'self'"}</Code> would block anything
-            else outright.
+            <Lead>Same-origin.</Lead> They post to <Code>/_vercel/insights/</Code> and{" "}
+            <Code>/_vercel/speed-insights/</Code> on this domain, not to a third-party tracking host.{" "}
+            <Code>{"connect-src 'self'"}</Code> would block anything else outright.
           </li>
           <li>
-            <Lead>Aggregate.</Lead> It records that a page was viewed, plus the coarse device and
-            country information any server can already derive from the request itself.
+            <Lead>Aggregate.</Lead> Analytics records that a page was viewed, plus the coarse device
+            and country information any server can already derive from the request itself. Speed
+            Insights records timing numbers — how long the page took to render and respond — and
+            nothing about what was on it.
           </li>
           <li>
-            <Lead>No cross-site profile.</Lead> It does not follow you to other sites, and it is not
-            used for advertising.
+            <Lead>No cross-site profile.</Lead> They do not follow you to other sites, and they are
+            not used for advertising.
           </li>
           <li>
-            <Lead>It never sees your document.</Lead> It has no access to the rendered content and
-            does not transmit it.
+            <Lead>They never see your document.</Lead> Neither has access to the rendered content,
+            and neither transmits it.
           </li>
         </Bullets>
       </Section>

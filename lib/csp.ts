@@ -32,7 +32,7 @@ export const CSP_DIRECTIVES: readonly CspDirective[] = [
   {
     name: "connect-src",
     value: "'self'",
-    note: "The one that matters. This page cannot open a network connection to any host but its own, so the document you are reading cannot be sent anywhere. The only same-origin call is the anonymous pageview count, which never sees your document.",
+    note: "The one that matters. This page cannot open a network connection to any host but its own, so the document you are reading cannot be sent anywhere. The only same-origin calls are the anonymous pageview count and page-load timings, neither of which ever sees your document.",
   },
   { name: "worker-src", value: "'self' blob:", note: "Diagram rendering." },
   { name: "object-src", value: "'none'" },

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Footer } from "@/components/footer";
 import { SITE_DESCRIPTION, SITE_NAME } from "@/lib/constants";
@@ -33,9 +34,15 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
           <div className="flex flex-1 flex-col">{children}</div>
           <Footer />
         </ThemeProvider>
-        {/* Production only: in dev the script is served from va.vercel-scripts.com,
-            which script-src 'self' blocks. Same-origin (/_vercel/insights) on Vercel. */}
-        {process.env.NODE_ENV === "production" ? <Analytics /> : null}
+        {/* Production only: in dev these scripts are served from va.vercel-scripts.com,
+            which script-src 'self' blocks. Same-origin (/_vercel/insights,
+            /_vercel/speed-insights) on Vercel. */}
+        {process.env.NODE_ENV === "production" ? (
+          <>
+            <Analytics />
+            <SpeedInsights />
+          </>
+        ) : null}
       </body>
     </html>
   );

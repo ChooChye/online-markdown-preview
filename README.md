@@ -14,7 +14,7 @@ The privacy story is architectural, not a promise in a footer:
 - **Remote images are blocked until you ask.** A document's external images (badges, hotlinked screenshots) would tell those hosts your IP. They get no `src` until you opt in.
 - **No cookies, no accounts.** Only the theme preference touches browser storage.
 
-The one disclosure: the site is hosted on Vercel, so Vercel's edge sees ordinary request metadata, and cookieless same-origin Vercel Web Analytics counts pageviews. Neither sees document content. `/privacy` spells this out.
+The one disclosure: the site is hosted on Vercel, so Vercel's edge sees ordinary request metadata, and cookieless same-origin Vercel Web Analytics and Speed Insights count pageviews and page-load timings. None of them sees document content. `/privacy` spells this out.
 
 ## Features
 
@@ -49,7 +49,7 @@ pnpm lint
 
 ```
 app/
-  layout.tsx            theme provider, footer, analytics
+  layout.tsx            theme provider, footer, analytics + speed insights
   page.tsx              mounts the viewer
   privacy/page.tsx      the privacy page, rendering the live CSP
   globals.css           Tailwind v4 tokens, light/dark
@@ -71,7 +71,7 @@ Plugin order in the pipeline is load-bearing: `rehype-raw` → `rehype-sanitize`
 
 ## Deployment
 
-Vercel. The analytics integration assumes it; drop `@vercel/analytics` from `app/layout.tsx` and it will run on any static host.
+Vercel. The analytics integrations assume it; drop `@vercel/analytics` and `@vercel/speed-insights` from `app/layout.tsx` and it will run on any static host.
 
 ## Not included
 
