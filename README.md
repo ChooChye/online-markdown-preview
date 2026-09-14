@@ -1,36 +1,78 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Markdown Preview
 
-## Getting Started
+A free, public markdown **viewer**. Drop a `.md` file and read it rendered — GitHub-faithful, with syntax highlighting, diagrams, and math.
 
-First, run the development server:
+Nothing is uploaded. There is no backend, no database, and no storage. The file is read and rendered in your browser, and a reload clears it.
+
+## Why it can make that claim
+
+The privacy story is architectural, not a promise in a footer:
+
+- **No server takes the file.** `FileReader` reads it locally; the rendered output never leaves the page.
+- **`connect-src 'self'`** in the Content-Security-Policy means the browser will not let this page open a network connection to any host but its own origin. Enforced by the browser, not by us.
+- **It works offline.** Load the page, disconnect, drop a file — it still renders. That is the whole proof.
+- **Remote images are blocked until you ask.** A document's external images (badges, hotlinked screenshots) would tell those hosts your IP. They get no `src` until you opt in.
+- **No cookies, no accounts.** Only the theme preference touches browser storage.
+
+The one disclosure: the site is hosted on Vercel, so Vercel's edge sees ordinary request metadata, and cookieless same-origin Vercel Web Analytics counts pageviews. Neither sees document content. `/privacy` spells this out.
+
+## Features
+
+| | |
+|---|---|
+| Input | Drag-and-drop, click-to-browse, paste raw markdown |
+| Rendering | GFM (tables, task lists, footnotes, strikethrough), Mermaid diagrams, KaTeX math, YAML frontmatter |
+| Highlighting | Shiki 4 with the JS RegExp engine — no WASM, languages loaded on demand |
+| HTML in markdown | Allowed and sanitized: `<details>`, `<kbd>`, `<sub>`, badges. Scripts, handlers, and `javascript:` URLs stripped |
+| Reading | Preview / Raw toggle, TOC sidebar with scroll-spy, heading anchors, light / dark / system |
+| Limits | `.md` only, 2 MB, one document at a time |
+
+## Stack
+
+Next.js 16 (App Router) · React 19 · TypeScript · Tailwind CSS v4 · react-markdown / unified
+
+## Development
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+pnpm install
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+`fixtures/torture-test.md` exercises every supported feature plus the hostile-HTML cases — drop it in to check a change end to end.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+pnpm build      # production build
+pnpm lint
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Architecture
 
-## Learn More
+```
+app/
+  layout.tsx            theme provider, footer, analytics
+  page.tsx              mounts the viewer
+  privacy/page.tsx      the privacy page, rendering the live CSP
+  globals.css           Tailwind v4 tokens, light/dark
+  markdown.css          GitHub-faithful .markdown-body styles
+components/
+  viewer.tsx            composition root — all app state lives here
+  dropzone.tsx          empty state, drag/drop/paste/picker
+  viewer-header.tsx     file name, Preview|Raw, theme, close
+  markdown-renderer.tsx the unified pipeline
+  remote-image-gate.tsx image blocking + opt-in bar
+  mermaid-block.tsx     lazily loaded diagrams
+  toc-sidebar.tsx       scroll-spy contents
+lib/
+  csp.ts                the policy, shared by next.config and /privacy
+  markdown/             frontmatter, sanitize schema, Shiki, mermaid plugin
+```
 
-To learn more about Next.js, take a look at the following resources:
+Plugin order in the pipeline is load-bearing: `rehype-raw` → `rehype-sanitize` → slug/autolink → KaTeX → mermaid placeholder → Shiki. Sanitizing **before** Shiki and KaTeX is what keeps their generated markup from being stripped; KaTeX and the mermaid placeholder run **before** Shiki so it cannot claim their `<pre>` blocks first.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Deployment
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Vercel. The analytics integration assumes it; drop `@vercel/analytics` from `app/layout.tsx` and it will run on any static host.
 
-## Deploy on Vercel
+## Not included
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Editing, multiple files or tabs, folder drop, loading from a URL, persistence, PDF export, `.mdx`/`.txt`.

@@ -1,26 +1,154 @@
 @import "tailwindcss";
+@import "./markdown.css";
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ==========================================================================
+   Design tokens — GitHub Primer values.
+
+   Raw values live on :root / .dark so they can be swapped at runtime by
+   next-themes toggling the `.dark` class. They are mapped into Tailwind's
+   `--color-*` namespace with `@theme inline` (NOT plain `@theme`, which would
+   resolve the var() once at build time and freeze the light values into every
+   utility, breaking dark mode).
+
+   markdown.css reads the raw names (--canvas, --fg, …) directly.
+   ========================================================================== */
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: light;
+
+  /* Contract tokens */
+  --canvas: #ffffff;
+  --canvas-subtle: #f6f8fa;
+  --canvas-inset: #f6f8fa;
+  --fg: #1f2328;
+  --fg-muted: #59636e;
+  --border: #d1d9e0;
+  --accent: #0969da;
+  --danger: #cf222e;
+  --success: #1a7f37;
+  --attention: #9a6700;
+
+  /* Extended Primer tokens — used by markdown.css, available to the app. */
+  --border-muted: #d1d9e0b3;
+  --neutral-muted: #afb8c133; /* inline <code> tint */
+  --accent-subtle: #ddf4ff;
+  --accent-emphasis: #0969da; /* focus rings, selected state */
+  --danger-subtle: #ffebe9;
+  --success-subtle: #dafbe1;
+  --attention-subtle: #fff8c5;
+  --shadow-overlay: 0 8px 24px rgb(140 149 159 / 0.2);
+}
+
+.dark {
+  color-scheme: dark;
+
+  /* Contract tokens */
+  --canvas: #0d1117;
+  --canvas-subtle: #161b22;
+  --canvas-inset: #010409;
+  --fg: #e6edf3;
+  --fg-muted: #8b949e;
+  --border: #30363d;
+  --accent: #4493f8;
+  --danger: #f85149;
+  --success: #3fb950;
+  --attention: #d29922;
+
+  /* Extended Primer tokens */
+  --border-muted: #21262d;
+  --neutral-muted: #6e768166; /* inline <code> tint */
+  --accent-subtle: #388bfd1a;
+  --accent-emphasis: #1f6feb;
+  --danger-subtle: #f8514926;
+  --success-subtle: #2ea04326;
+  --attention-subtle: #bb800926;
+  --shadow-overlay: 0 8px 24px rgb(1 4 9 / 0.8);
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  /* Contract — `bg-canvas`, `text-fg-muted`, `border-border`, `text-accent`, … */
+  --color-canvas: var(--canvas);
+  --color-canvas-subtle: var(--canvas-subtle);
+  --color-canvas-inset: var(--canvas-inset);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-border: var(--border);
+  --color-accent: var(--accent);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --color-attention: var(--attention);
+
+  /* Extended */
+  --color-border-muted: var(--border-muted);
+  --color-neutral-muted: var(--neutral-muted);
+  --color-accent-subtle: var(--accent-subtle);
+  --color-accent-emphasis: var(--accent-emphasis);
+  --color-danger-subtle: var(--danger-subtle);
+  --color-success-subtle: var(--success-subtle);
+  --color-attention-subtle: var(--attention-subtle);
+
+  /* next/font wires these on <html>; the stacks after them are the fallback. */
+  --font-sans:
+    var(--font-geist-sans), -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Noto Sans", Helvetica, Arial, sans-serif, "Apple Color Emoji",
+    "Segoe UI Emoji";
+  --font-mono:
+    var(--font-geist-mono), ui-monospace, SFMono-Regular, "SF Mono", Menlo,
+    Consolas, "Liberation Mono", monospace;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+/* ==========================================================================
+   Thin base layer. App chrome is Tailwind utilities written elsewhere, so
+   everything here lives in `@layer base` — unlayered rules outrank *every*
+   utility regardless of specificity, which would quietly break a teammate's
+   `border-danger` or `bg-canvas-subtle`.
+   ========================================================================== */
+
+@layer base {
+  /* Tailwind v4 resets every border to `currentColor`; restore a sane default
+     so a bare `border` utility matches the theme instead of the text color. */
+  *,
+  ::before,
+  ::after,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--border);
   }
-}
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--canvas);
+    color: var(--fg);
+    font-family: var(--font-sans);
+  }
+
+  /* Keyboard-only focus ring, in the accent token so it reads in both themes. */
+  :focus-visible {
+    outline: 2px solid var(--accent-emphasis);
+    outline-offset: 2px;
+  }
+
+  :focus:not(:focus-visible) {
+    outline: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html {
+      scroll-behavior: auto;
+    }
+
+    *,
+    ::before,
+    ::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      transition-delay: 0ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 }

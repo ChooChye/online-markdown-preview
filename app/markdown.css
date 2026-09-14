@@ -1,0 +1,950 @@
+/* ==========================================================================
+   markdown.css — GitHub-faithful rendered-README styling.
+
+   Everything is scoped under `.markdown-body`, which wraps the rendered
+   document (<article className="markdown-body">).
+
+   Colors come from the raw theme tokens defined in globals.css on :root/.dark
+   (--canvas, --canvas-subtle, --fg, --fg-muted, --border, --border-muted,
+   --accent, --neutral-muted, …). Note that Tailwind's `@theme inline` inlines
+   its `--color-*` values into utilities and does not emit them as variables,
+   so this file deliberately reads the raw names. No literal hex appears
+   anywhere a value could differ between light and dark — the sole exception is
+   @media print, which is intentionally forced to black-on-white.
+
+   Tailwind's preflight zeroes every margin/padding/border, strips list
+   markers, flattens heading sizes and weights, neutralizes links, and makes
+   images `display: block`. Every one of those is restored explicitly below.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   Container
+   -------------------------------------------------------------------------- */
+
+.markdown-body {
+  color: var(--fg);
+  background-color: var(--canvas);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* GitHub's clearfix — keeps floated images and heading anchors contained. */
+.markdown-body::before {
+  display: table;
+  content: "";
+}
+
+.markdown-body::after {
+  display: table;
+  clear: both;
+  content: "";
+}
+
+/* Margin collapse at the document edges. */
+.markdown-body > *:first-child {
+  margin-top: 0 !important;
+}
+
+.markdown-body > *:last-child {
+  margin-bottom: 0 !important;
+}
+
+/* remark-gfm emits <h2 class="sr-only">Footnotes</h2>. Tailwind only generates
+   `sr-only` from scanned source files, and this class arrives at runtime, so
+   define it here or a stray "Footnotes" heading appears. */
+.markdown-body .sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border-width: 0;
+}
+
+/* --------------------------------------------------------------------------
+   Block rhythm
+   -------------------------------------------------------------------------- */
+
+.markdown-body p,
+.markdown-body blockquote,
+.markdown-body ul,
+.markdown-body ol,
+.markdown-body dl,
+.markdown-body table,
+.markdown-body pre,
+.markdown-body details,
+.markdown-body figure {
+  margin-top: 0;
+  margin-bottom: 16px;
+}
+
+/* --------------------------------------------------------------------------
+   Headings
+   -------------------------------------------------------------------------- */
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  position: relative;
+  margin-top: 24px;
+  margin-bottom: 16px;
+  font-weight: 600;
+  line-height: 1.25;
+  /* The app header is sticky — keep TOC jumps from landing underneath it. */
+  scroll-margin-top: 5rem;
+}
+
+.markdown-body h1 {
+  padding-bottom: 0.3em;
+  font-size: 2em;
+  border-bottom: 1px solid var(--border-muted);
+}
+
+.markdown-body h2 {
+  padding-bottom: 0.3em;
+  font-size: 1.5em;
+  border-bottom: 1px solid var(--border-muted);
+}
+
+.markdown-body h3 {
+  font-size: 1.25em;
+}
+
+.markdown-body h4 {
+  font-size: 1em;
+}
+
+.markdown-body h5 {
+  font-size: 0.875em;
+}
+
+.markdown-body h6 {
+  font-size: 0.85em;
+  color: var(--fg-muted);
+}
+
+/* A heading directly after a heading gets no double gap — generic prose CSS
+   stacks 16px + 24px here and it reads as a layout bug. */
+.markdown-body :is(h1, h2, h3, h4, h5, h6) + :is(h1, h2, h3, h4, h5, h6) {
+  margin-top: 16px;
+}
+
+/* Nested blocks never push their container open at the seams. */
+.markdown-body blockquote > :first-child,
+.markdown-body td > :first-child,
+.markdown-body th > :first-child,
+.markdown-body details > :first-child {
+  margin-top: 0;
+}
+
+.markdown-body blockquote > :last-child,
+.markdown-body td > :last-child,
+.markdown-body th > :last-child,
+.markdown-body details > :last-child,
+.markdown-body figure > :last-child {
+  margin-bottom: 0;
+}
+
+.markdown-body :is(h1, h2, h3, h4, h5, h6) code,
+.markdown-body :is(h1, h2, h3, h4, h5, h6) tt {
+  padding: 0 0.2em;
+  font-size: inherit;
+}
+
+/* --------------------------------------------------------------------------
+   Heading anchors (rehype-autolink-headings)
+
+   Invisible until the heading is hovered or the anchor itself takes focus.
+   Driven by `opacity`, not `visibility`/`display`, so the link stays in the
+   tab order and is reachable from the keyboard.
+   -------------------------------------------------------------------------- */
+
+.markdown-body :is(h1, h2, h3, h4, h5, h6) .anchor,
+.markdown-body :is(h1, h2, h3, h4, h5, h6) > a.heading-anchor,
+.markdown-body :is(h1, h2, h3, h4, h5, h6) > a[aria-hidden="true"] {
+  float: left;
+  box-sizing: border-box;
+  width: 20px;
+  padding-right: 4px;
+  margin-left: -20px;
+  font-weight: 400;
+  line-height: 1;
+  /* Hugs the heading text, so the glyph stays on screen even when the app
+     container's padding is narrower than the 20px gutter. */
+  text-align: right;
+  color: var(--fg-muted);
+  text-decoration: none;
+  opacity: 0;
+  transition: opacity 80ms linear;
+}
+
+.markdown-body :is(h1, h2, h3, h4, h5, h6):hover .anchor,
+.markdown-body :is(h1, h2, h3, h4, h5, h6):hover > a.heading-anchor,
+.markdown-body :is(h1, h2, h3, h4, h5, h6):hover > a[aria-hidden="true"],
+.markdown-body .anchor:focus,
+.markdown-body .anchor:focus-visible,
+.markdown-body a.heading-anchor:focus,
+.markdown-body a.heading-anchor:focus-visible {
+  opacity: 1;
+}
+
+.markdown-body .anchor:hover,
+.markdown-body a.heading-anchor:hover {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+/* rehype-autolink-headings' default `content` is an empty
+   <span class="icon icon-link">; give it something to draw. Inert when the
+   anchor already holds an octicon SVG or a literal "#". */
+.markdown-body .anchor:empty::before,
+.markdown-body .anchor .icon-link:empty::before,
+.markdown-body a.heading-anchor:empty::before {
+  content: "#";
+}
+
+.markdown-body .anchor svg,
+.markdown-body a.heading-anchor svg,
+.markdown-body .octicon {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  overflow: visible;
+  vertical-align: text-bottom;
+  fill: currentColor;
+}
+
+/* On narrow viewports there is no left gutter to hang the anchor in — park it
+   at the end of the line instead of letting it be clipped off-screen. */
+@media (max-width: 47.9375rem) {
+  .markdown-body :is(h1, h2, h3, h4, h5, h6) .anchor,
+  .markdown-body :is(h1, h2, h3, h4, h5, h6) > a.heading-anchor,
+  .markdown-body :is(h1, h2, h3, h4, h5, h6) > a[aria-hidden="true"] {
+    float: right;
+    width: auto;
+    padding-right: 0;
+    margin-left: 8px;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Links and inline text
+   -------------------------------------------------------------------------- */
+
+.markdown-body a {
+  color: var(--accent);
+  text-decoration: none;
+  background-color: transparent;
+  /* Bare URLs in a README routinely outrun the column. */
+  overflow-wrap: break-word;
+}
+
+.markdown-body a:hover {
+  text-decoration: underline;
+}
+
+.markdown-body a:not([href]) {
+  color: inherit;
+  text-decoration: none;
+}
+
+.markdown-body b,
+.markdown-body strong {
+  font-weight: 600;
+}
+
+.markdown-body em,
+.markdown-body i {
+  font-style: italic;
+}
+
+.markdown-body del {
+  text-decoration: line-through;
+}
+
+.markdown-body del code {
+  text-decoration: inherit;
+}
+
+.markdown-body mark {
+  padding: 0.2em;
+  color: var(--fg);
+  background-color: var(--attention-subtle);
+}
+
+.markdown-body small {
+  font-size: 90%;
+}
+
+.markdown-body abbr[title] {
+  text-decoration: underline dotted;
+  cursor: help;
+  border-bottom: none;
+}
+
+.markdown-body sub,
+.markdown-body sup {
+  font-size: 75%;
+  line-height: 0;
+}
+
+.markdown-body kbd {
+  display: inline-block;
+  padding: 3px 5px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 10px;
+  color: var(--fg);
+  vertical-align: middle;
+  background-color: var(--canvas-subtle);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: inset 0 -1px 0 var(--border);
+}
+
+/* --------------------------------------------------------------------------
+   Lists
+   -------------------------------------------------------------------------- */
+
+.markdown-body ul,
+.markdown-body ol {
+  padding-left: 2em;
+}
+
+.markdown-body ul {
+  list-style-type: disc;
+}
+
+.markdown-body ol {
+  list-style-type: decimal;
+}
+
+.markdown-body ul ul {
+  list-style-type: circle;
+}
+
+.markdown-body ul ul ul {
+  list-style-type: square;
+}
+
+.markdown-body ol ol,
+.markdown-body ul ol {
+  list-style-type: lower-roman;
+}
+
+.markdown-body ul ul ol,
+.markdown-body ul ol ol,
+.markdown-body ol ul ol,
+.markdown-body ol ol ol {
+  list-style-type: lower-alpha;
+}
+
+.markdown-body ol[type="1"] {
+  list-style-type: decimal;
+}
+
+.markdown-body ol[type="a" s] {
+  list-style-type: lower-alpha;
+}
+
+.markdown-body ol[type="A" s] {
+  list-style-type: upper-alpha;
+}
+
+.markdown-body ol[type="i" s] {
+  list-style-type: lower-roman;
+}
+
+.markdown-body ol[type="I" s] {
+  list-style-type: upper-roman;
+}
+
+.markdown-body li::marker {
+  color: inherit;
+}
+
+/* Nested lists sit flush inside their parent item. */
+.markdown-body ul ul,
+.markdown-body ul ol,
+.markdown-body ol ol,
+.markdown-body ol ul {
+  margin-top: 0;
+  margin-bottom: 0;
+}
+
+.markdown-body li + li {
+  margin-top: 0.25em;
+}
+
+/* Loose list items (content wrapped in <p>) breathe; tight ones do not. */
+.markdown-body li > p {
+  margin-top: 16px;
+}
+
+.markdown-body dl {
+  padding: 0;
+}
+
+.markdown-body dl dt {
+  padding: 0;
+  margin-top: 16px;
+  font-size: 1em;
+  font-style: italic;
+  font-weight: 600;
+}
+
+.markdown-body dl dd {
+  padding: 0 16px;
+  margin-left: 0;
+  margin-bottom: 16px;
+}
+
+/* --------------------------------------------------------------------------
+   Task lists (remark-gfm)
+
+   mdast-util-to-hast tags the list `contains-task-list` and each item
+   `task-list-item`; the :has() selectors cover renderers that do not.
+   -------------------------------------------------------------------------- */
+
+.markdown-body .contains-task-list {
+  position: relative;
+}
+
+.markdown-body li.task-list-item,
+.markdown-body li:has(> input[type="checkbox"]),
+.markdown-body li:has(> p:first-child > input[type="checkbox"]:first-child) {
+  list-style-type: none;
+}
+
+.markdown-body li.task-list-item + li.task-list-item {
+  margin-top: 4px;
+}
+
+.markdown-body li input[type="checkbox"] {
+  /* Hang the box in the marker gutter, the way GitHub does. */
+  margin: 0 0.2em 0.25em -1.4em;
+  vertical-align: middle;
+  accent-color: var(--accent-emphasis);
+}
+
+.markdown-body li input[type="checkbox"]:disabled {
+  cursor: default;
+  opacity: 1;
+}
+
+.markdown-body li.task-list-item label {
+  font-weight: 400;
+}
+
+/* --------------------------------------------------------------------------
+   Blockquote
+   -------------------------------------------------------------------------- */
+
+.markdown-body blockquote {
+  padding: 0 1em;
+  color: var(--fg-muted);
+  border-left: 0.25em solid var(--border);
+}
+
+/* --------------------------------------------------------------------------
+   Code — inline and blocks
+   -------------------------------------------------------------------------- */
+
+.markdown-body code,
+.markdown-body tt,
+.markdown-body samp,
+.markdown-body pre {
+  font-family: var(--font-mono);
+}
+
+.markdown-body code,
+.markdown-body tt {
+  padding: 0.2em 0.4em;
+  margin: 0;
+  font-size: 85%;
+  color: var(--fg);
+  white-space: break-spaces;
+  /* Long paths and identifiers wrap instead of widening the column. */
+  word-break: break-word;
+  overflow-wrap: break-word;
+  background-color: var(--neutral-muted);
+  border-radius: 6px;
+}
+
+.markdown-body code br,
+.markdown-body tt br {
+  display: none;
+}
+
+.markdown-body pre {
+  padding: 16px;
+  /* Code blocks own their horizontal scroll — the page never moves sideways. */
+  overflow: auto;
+  font-size: 85%;
+  line-height: 1.45;
+  color: var(--fg);
+  background-color: var(--canvas-subtle);
+  border-radius: 6px;
+}
+
+.markdown-body pre code,
+.markdown-body pre tt {
+  display: inline;
+  padding: 0;
+  margin: 0;
+  overflow: visible;
+  font-size: 100%;
+  line-height: inherit;
+  word-break: normal;
+  overflow-wrap: normal;
+  white-space: pre;
+  background-color: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+/* Shiki emits <pre tabindex="0"> so the scroll area is keyboard reachable;
+   make that focus visible. */
+.markdown-body pre:focus-visible {
+  outline: 2px solid var(--accent-emphasis);
+  outline-offset: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   Shiki dual theme
+
+   Highlighting runs with `defaultColor: false`, so every token carries
+   --shiki-light / --shiki-dark (plus -bg and -font-style / -font-weight /
+   -text-decoration) instead of a baked color. Read the light set normally and
+   the dark set under `.dark`, for the <pre class="shiki"> itself and every
+   token span inside it — without this, dark mode renders light-theme code.
+   -------------------------------------------------------------------------- */
+
+.markdown-body .shiki,
+.markdown-body .shiki span {
+  color: var(--shiki-light);
+  font-style: var(--shiki-light-font-style);
+  font-weight: var(--shiki-light-font-weight);
+  text-decoration: var(--shiki-light-text-decoration);
+}
+
+.dark .markdown-body .shiki,
+.dark .markdown-body .shiki span {
+  color: var(--shiki-dark);
+  font-style: var(--shiki-dark-font-style);
+  font-weight: var(--shiki-dark-font-weight);
+  text-decoration: var(--shiki-dark-text-decoration);
+}
+
+/* Shiki also emits --shiki-light-bg / --shiki-dark-bg, but those are the
+   *page* backgrounds of the github-light / github-dark themes (#ffffff and
+   #0d1117) — identical to our canvas, which would dissolve the code block into
+   the page. GitHub's own rendered README uses the muted canvas for the block,
+   so the token wins and the theme's background is deliberately ignored. */
+.markdown-body .shiki,
+.markdown-body pre.shiki {
+  background-color: var(--canvas-subtle);
+}
+
+/* --------------------------------------------------------------------------
+   Tables
+   -------------------------------------------------------------------------- */
+
+.markdown-body table {
+  /* `display: block` + max-content is GitHub's trick for giving a wide table
+     its own scrollbar instead of stretching the document. */
+  display: block;
+  width: max-content;
+  max-width: 100%;
+  overflow: auto;
+  border-spacing: 0;
+  border-collapse: collapse;
+  font-variant: tabular-nums;
+}
+
+.markdown-body table th {
+  font-weight: 600;
+}
+
+/* Only when GFM did not specify an alignment — an explicit `align`/`style`
+   from the delimiter row must still win. */
+.markdown-body table th:not([align]) {
+  text-align: left;
+}
+
+.markdown-body table th,
+.markdown-body table td {
+  padding: 6px 13px;
+  border: 1px solid var(--border);
+}
+
+.markdown-body table tr {
+  color: var(--fg);
+  background-color: var(--canvas);
+  border-top: 1px solid var(--border-muted);
+}
+
+/* Alternating row banding. */
+.markdown-body table tr:nth-child(2n) {
+  background-color: var(--canvas-subtle);
+}
+
+.markdown-body table img {
+  background-color: transparent;
+}
+
+/* --------------------------------------------------------------------------
+   Rules
+   -------------------------------------------------------------------------- */
+
+.markdown-body hr {
+  height: 0.25em;
+  padding: 0;
+  margin: 24px 0;
+  background-color: var(--border);
+  border: 0;
+}
+
+.markdown-body hr::before {
+  display: table;
+  content: "";
+}
+
+.markdown-body hr::after {
+  display: table;
+  clear: both;
+  content: "";
+}
+
+/* --------------------------------------------------------------------------
+   Media
+   -------------------------------------------------------------------------- */
+
+.markdown-body img {
+  /* Preflight makes images `display: block`; README badge rows have to stay on
+     one line. */
+  display: inline-block;
+  box-sizing: content-box;
+  max-width: 100%;
+  height: auto;
+  vertical-align: middle;
+  border-style: none;
+  /* An explicit backdrop so a transparent PNG never picks up a surprise tint
+     from whatever container it lands in. */
+  background-color: var(--canvas);
+}
+
+.markdown-body img[align="right"] {
+  padding-left: 20px;
+}
+
+.markdown-body img[align="left"] {
+  padding-right: 20px;
+}
+
+.markdown-body svg:not(.octicon) {
+  max-width: 100%;
+}
+
+.markdown-body video,
+.markdown-body iframe {
+  max-width: 100%;
+}
+
+.markdown-body figure {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.markdown-body figcaption {
+  margin-top: 8px;
+  font-size: 85%;
+  color: var(--fg-muted);
+  text-align: center;
+}
+
+/* --------------------------------------------------------------------------
+   details / summary
+   -------------------------------------------------------------------------- */
+
+.markdown-body details {
+  display: block;
+}
+
+.markdown-body summary {
+  display: list-item;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.markdown-body summary::marker {
+  color: var(--fg-muted);
+}
+
+.markdown-body summary::-webkit-details-marker {
+  color: var(--fg-muted);
+}
+
+.markdown-body summary:hover {
+  color: var(--accent);
+}
+
+.markdown-body details[open] > summary {
+  margin-bottom: 16px;
+}
+
+.markdown-body details:not([open]) > *:not(summary) {
+  display: none !important;
+}
+
+/* --------------------------------------------------------------------------
+   Footnotes (remark-gfm)
+   -------------------------------------------------------------------------- */
+
+.markdown-body .footnotes {
+  margin-top: 32px;
+  padding-top: 16px;
+  font-size: 12px;
+  color: var(--fg-muted);
+  border-top: 1px solid var(--border);
+}
+
+.markdown-body .footnotes ol {
+  padding-left: 16px;
+  margin-bottom: 0;
+}
+
+.markdown-body .footnotes ol ul {
+  display: inline-block;
+  padding-left: 16px;
+  margin-top: 16px;
+}
+
+.markdown-body .footnotes li {
+  position: relative;
+  scroll-margin-top: 5rem;
+}
+
+.markdown-body .footnotes li:target {
+  color: var(--fg);
+}
+
+.markdown-body .footnotes li:target::before {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  bottom: -8px;
+  left: -24px;
+  pointer-events: none;
+  content: "";
+  border: 2px solid var(--accent-emphasis);
+  border-radius: 6px;
+}
+
+.markdown-body .footnotes p {
+  margin-bottom: 8px;
+}
+
+/* The back-reference stays visible — it is the only way back to the body. */
+.markdown-body [data-footnote-backref],
+.markdown-body .data-footnote-backref {
+  display: inline-block;
+  margin-left: 4px;
+  font-family: var(--font-mono);
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.markdown-body [data-footnote-backref]:hover {
+  text-decoration: underline;
+}
+
+.markdown-body [data-footnote-ref] {
+  text-decoration: none;
+  scroll-margin-top: 5rem;
+}
+
+/* --------------------------------------------------------------------------
+   KaTeX
+
+   katex.min.css is imported by the math component; this is only the theme and
+   overflow layer on top of it.
+   -------------------------------------------------------------------------- */
+
+.markdown-body .katex {
+  /* Inherit the theme foreground instead of whatever KaTeX resolves to. */
+  color: var(--fg);
+  font-size: 1.05em;
+  text-indent: 0;
+}
+
+/* globals.css sets a default border-color on every element for Tailwind v4
+   compatibility; KaTeX draws fraction bars, radicals and \rule with borders,
+   which must track the text color or they turn grey. */
+.markdown-body .katex * {
+  border-color: currentColor;
+}
+
+.markdown-body .katex-display {
+  margin: 16px 0;
+  padding: 4px 2px;
+  /* A wide equation scrolls inside its own box, not the page. */
+  overflow-x: auto;
+  overflow-y: hidden;
+  text-align: center;
+}
+
+.markdown-body .katex-display > .katex {
+  display: inline-block;
+  max-width: none;
+  text-align: initial;
+  white-space: nowrap;
+}
+
+.markdown-body .katex-display:focus-visible {
+  outline: 2px solid var(--accent-emphasis);
+  outline-offset: 2px;
+}
+
+/* --------------------------------------------------------------------------
+   Mermaid — rendered as inline SVG; keep wide diagrams inside their own box.
+   -------------------------------------------------------------------------- */
+
+.markdown-body .mermaid {
+  max-width: 100%;
+  margin-bottom: 16px;
+  overflow-x: auto;
+  text-align: center;
+}
+
+.markdown-body .mermaid svg {
+  max-width: 100%;
+  height: auto;
+}
+
+/* --------------------------------------------------------------------------
+   Print — cheap insurance, not a feature. Plain black-on-white paper with
+   nothing but the rendered markdown on it.
+   -------------------------------------------------------------------------- */
+
+@media print {
+  /* Keep only .markdown-body, its ancestors and its contents. Guarded by
+     body:has() so a page with no rendered document still prints something. */
+  body:has(.markdown-body)
+    *:not(:has(.markdown-body)):not(.markdown-body):not(.markdown-body *) {
+    display: none !important;
+  }
+
+  :root,
+  .dark {
+    color-scheme: light;
+  }
+
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .markdown-body {
+    max-width: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    font-size: 11pt;
+    color: #000 !important;
+    background: #fff !important;
+  }
+
+  .markdown-body *,
+  .markdown-body *::before,
+  .markdown-body *::after {
+    color: #000 !important;
+    background: transparent !important;
+    box-shadow: none !important;
+  }
+
+  .markdown-body :is(h1, h2) {
+    border-bottom: 1px solid #999 !important;
+  }
+
+  .markdown-body blockquote {
+    border-left: 0.25em solid #999 !important;
+  }
+
+  /* Print dialogs default to "no background graphics", so a background-painted
+     rule disappears. Draw it with a border, which always prints. */
+  .markdown-body hr {
+    height: 0 !important;
+    background: none !important;
+    border-top: 1px solid #999 !important;
+  }
+
+  .markdown-body pre,
+  .markdown-body table th,
+  .markdown-body table td {
+    border: 1px solid #999 !important;
+  }
+
+  .markdown-body code,
+  .markdown-body tt {
+    padding: 0;
+  }
+
+  .markdown-body pre {
+    /* No horizontal scrollbar on paper. */
+    overflow: visible !important;
+    white-space: pre-wrap !important;
+    word-wrap: break-word !important;
+  }
+
+  .markdown-body table {
+    display: table !important;
+    width: 100% !important;
+    overflow: visible !important;
+  }
+
+  .markdown-body pre,
+  .markdown-body table,
+  .markdown-body tr,
+  .markdown-body blockquote,
+  .markdown-body figure,
+  .markdown-body img {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .markdown-body :is(h1, h2, h3, h4, h5, h6) {
+    break-after: avoid;
+    page-break-after: avoid;
+  }
+
+  .markdown-body a {
+    text-decoration: underline;
+  }
+
+  /* Paper has no hover — spell the destination out. */
+  .markdown-body a[href^="http"]::after,
+  .markdown-body a[href^="//"]::after {
+    content: " (" attr(href) ")";
+    font-size: 85%;
+    font-weight: 400;
+    word-break: break-all;
+  }
+
+  .markdown-body .anchor,
+  .markdown-body a.heading-anchor {
+    display: none !important;
+  }
+}
